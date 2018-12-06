@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 
 from utils.timeit import timeit
 
 @timeit
-def run(input):
+def day1_part1(input):
     return sum([int(x) for x in input])
     
 
@@ -21,4 +21,4 @@ if __name__ == '__main__':
     else:
         lines = sys.argv
 
-    print(f'Answer: {run(lines)}')
+    print(f'Answer: {day1_part1(lines)}')
