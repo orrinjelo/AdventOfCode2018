@@ -109,7 +109,7 @@ class Scheduler:
         # print(self.__finished)
 
         # for w in self.__workers:
-        #     print(w.history)
+        #     print(''.join(w.history))
 
     def dependency(self,n):
         if not n in self.__dependencies:
