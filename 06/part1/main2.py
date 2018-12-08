@@ -37,17 +37,17 @@ def make_field(points):
 def infect_full(field, points):
     X,Y = field.shape
     def calc_distance(x,y,p):  # Try L2, P-norm, or Max!
-        return abs(p[0]-x) + abs(p[1]-y)
-    for x in range(X):
-        for y in range(Y):
-            best = (0, X+Y) 
-            for p in range(len(points)):
-                dist = calc_distance(x,y,points[p])
-                if dist == best[1]:
-                    best = (-1, dist)
-                elif dist < best[1]:
-                    best = (p+1, dist)
-            field[x, y] = best[0]
+        grid = np.meshgrid(x, y)
+        return np.abs(p[0]-grid) + np.abs(p[1]-grid)
+    best = (0, X+Y) 
+    for p in range(len(points)):
+        dist = calc_distance(np.arange(X),np.arange(Y),points[p])
+        print('Test', dist)
+        # if dist == best[1]:
+        #     best = (-1, dist)
+        # elif dist < best[1]:
+        #     best = (p+1, dist)
+        # field[x, y] = best[0]
     return field
 
 @timeit
@@ -80,7 +80,6 @@ def day6_part1(input, do_plot=False):
     infect_full(field, points)
     k = count_territories(field, len(points))
 
-    print_field(field)
     if do_plot:
         import matplotlib.pyplot as plt 
         from matplotlib import cm

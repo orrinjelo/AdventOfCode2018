@@ -21,7 +21,6 @@ def parse_lines(lines):
 
 @timeit
 def make_field(points):
-    global history
     min_x = min(min(points)[0], 0)
     max_x = max(points)[0]
     min_y = min(min(points, key=itemgetter(1))[1], 0)
@@ -34,7 +33,7 @@ def make_field(points):
 def infect_full(field, points):
     X,Y = field.shape
     def calc_distance(x,y,p):
-        return abs(p[0]-x) + abs(p[1]-y)
+        return abs(p[0]-x) * abs(p[1]-y)
     for x in range(X):
         for y in range(Y):
             best = (0, X+Y) 
