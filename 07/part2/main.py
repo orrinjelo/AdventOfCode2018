@@ -108,8 +108,13 @@ class Scheduler:
         # print(self._timecard)
         # print(self.__finished)
 
-        # for w in self.__workers:
-        #     print(''.join(w.history))
+        x = []
+        for w in self.__workers:
+            x.append([int(ord(c)) for c in list(w.history)])
+
+        import matplotlib.pyplot as plt
+        plt.imshow(x, aspect='auto', interpolation='none', cmap='gist_ncar')
+        plt.show()
 
     def dependency(self,n):
         if not n in self.__dependencies:
