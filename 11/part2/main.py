@@ -73,4 +73,4 @@ if __name__ == '__main__':
     plt.imshow(fc.grid)
     plt.show()
     # print(fc.collection(90,269,16))
-    print(fc.maxCollection())
+    # print(fc.maxCollection())
