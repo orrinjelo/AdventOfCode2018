@@ -15,6 +15,23 @@ class VirtualMachine(object):
         self.__registers = reg
 
         self.ops = {
+            1: self.addr,
+            13: self.addi,
+            15: self.mulr,
+            14: self.muli,
+            0: self.banr,
+            9: self.bani,
+            8: self.borr,
+            5: self.bori,
+            3: self.setr,
+            7: self.seti,
+            6: self.gtir,
+            12: self.gtri,
+            4: self.gtrr,
+            10: self.eqir,
+            2: self.eqri,
+            11: self.eqrr,
+
             16: self.addr,
             17: self.addi,
             18: self.mulr,
@@ -30,7 +47,7 @@ class VirtualMachine(object):
             28: self.gtrr,
             29: self.eqir,
             30: self.eqri,
-            31: self.eqrr,
+            31: self.eqrr,            
         }
 
     @property
@@ -89,7 +106,7 @@ class VirtualMachine(object):
     def exec(self, inst):
         op, A, B, C = inst
         if not op in self.ops.keys():
-            raise ValueError('Invalid op code')
+            raise ValueError(f'Invalid op code: {op} ({inst})')
         self.ops[op](A, B, C)
 
     def train(self, inst, before, result):
@@ -108,31 +125,18 @@ class VirtualMachine(object):
             if inst[0] not in self.ops.keys():
                 self.ops[inst[0]] = ok
             else:
-                new_ok = []
                 if type(self.ops[inst[0]]) == list:
-                    for o in ok:
-                        if o in self.ops[inst[0]]:
-                            try:
-                                if type(self.ops[o]) != list:
-                                    continue
-                            except:
-                                pass
-                            new_ok.append(o)
-                    if len(new_ok) == 1:
-                        self.ops[inst[0]] = new_ok[1]
+                    self.ops[inst[0]] = list(set(self.ops[inst[0]]).intersection(ok))
 
         # Fix os
         for op in range(16):
             try:
-                if type(self.ops[op]) == list:
-                    for e in self.ops[op]:
-                        try:
-                            if type(self.ops[e-16]) != list:
-                                self.ops[op].remove(e)
-                        except:
-                            pass
-                    if len(self.ops[op]) == 1:
-                        self.ops[op] = self.ops[self.ops[op][0]]
+                if type(self.ops[op]) == list and len(self.ops[op]) == 1:
+                    keyop = self.ops[op][0]
+                    self.ops[op] = self.ops[keyop]
+                    for op2 in range(16):
+                        if type(self.ops[op2]) == list and keyop in self.ops[op2]:
+                            self.ops[op2].remove(keyop)
             except:
                 pass
 
@@ -328,27 +332,18 @@ if __name__ == '__main__':
     else:
         sys.exit('Too many args.')
 
-    bre = re.compile(r'Before: \[(\d+),\s+(\d+),\s+(\d+),\s+(\d+)\]')
-    are = re.compile(r'After:  \[(\d+),\s+(\d+),\s+(\d+),\s+(\d+)\]')
+    # bre = re.compile(r'Before: \[(\d+),\s+(\d+),\s+(\d+),\s+(\d+)\]')
+    # are = re.compile(r'After:  \[(\d+),\s+(\d+),\s+(\d+),\s+(\d+)\]')
     ins = re.compile(r'(\d+)\s+(\d+)\s+(\d+)\s+(\d+)')
-
-    count = 0
 
     vm = VirtualMachine()
 
-    for i in range(0,len(lines),4):
-        b = bre.match(lines[i])
-        c = ins.match(lines[i+1])
-        a = are.match(lines[i+2])
+    for l in lines:
+        c = ins.match(l)
 
-        before = [int(b.groups(1)[0]),int(b.groups(1)[1]),int(b.groups(1)[2]),int(b.groups(1)[3])]
         instr  = [int(c.groups(1)[0]),int(c.groups(1)[1]),int(c.groups(1)[2]),int(c.groups(1)[3])]
-        after  = [int(a.groups(1)[0]),int(a.groups(1)[1]),int(a.groups(1)[2]),int(a.groups(1)[3])]
+        pprint(instr)
 
-        results = vm.train(instr, before, after)
+        results = vm.exec(instr)
 
-        if len(results) >= 3:
-            count += 1
-    pprint(vm.ops)
-
-    print(f'Answer: {count}/{len(lines)//4}')
+    pprint(vm.registers)
