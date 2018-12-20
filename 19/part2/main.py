@@ -4,6 +4,10 @@ import numpy as np
 from pprint import pprint
 import time
 import re
+import matplotlib.pyplot as plt
+# import pygame
+# import curses
+from pynput.keyboard import Listener, Key
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..'))
 
@@ -152,6 +156,7 @@ class VirtualMachine(object):
                 self.instructions.append([instr,A,B,C])
 
     def exec_once(self, inst=None):
+        if self.debug: print(f'pc={self.__pc} ip={self.__registers[self.__ip]} {self.registers}', end=' ')
         if inst is not None:
             op, A, B, C = inst
         else:
@@ -170,7 +175,6 @@ class VirtualMachine(object):
 
     def exec(self):
         while (self.registers[self.__ip] if self.__ip is not None else self.__pc) < len(self.instructions):
-            if self.debug: print(f'ip={self.__registers[self.__ip]} {self.registers}', end=' ')
             self.exec_once()
 
 class VMTests:
@@ -357,6 +361,44 @@ class VMTests:
         vm.exec_once(['seti', 2, 0, 0])
         assert(vm.registers == [3, 0, 0, 0])
 
+def main(lines):
+    vm = VirtualMachine([1, 0, 0, 0, 0, 0], debug=False)
+    vm.load(lines)
+
+    try:
+        vm.exec()
+    except KeyboardInterrupt:
+        pass
+    except:
+        pass
+
+
+    # history = [[],[],[],[],[]]
+
+    # def on_press(key):
+    #     if key == Key.esc:
+    #         sys.exit(0)
+    #     # if key == Key.enter:
+    #     #     vm._VirtualMachine__registers[3] = 10551331
+    #     #     vm._VirtualMachine__registers[4] = 10551331
+    #     vm.exec_once()
+    #     for i in range(5):
+    #         history[i].append(vm.registers[i])
+    #     # if vm.registers[vm.ip] == 4:
+    #     #     vm._VirtualMachine__registers[3] = 10551331
+    #     #     vm._VirtualMachine__registers[4] = 10551331    
+    #     # if vm.registers[vm.ip] == 12:    
+    #     #     vm._VirtualMachine__registers[1] = 10551331
+
+    # with Listener(on_press=on_press) as listener:
+    #     listener.join()
+
+    # plt.figure()
+    # for i in range(5):
+    #     plt.plot(history[i])
+    # plt.show()
+
+    pprint(vm.registers)
 if __name__ == '__main__':
     VMTests.run_tests()
 
@@ -369,10 +411,4 @@ if __name__ == '__main__':
     else:
         sys.exit('Too many args.')
 
-
-    vm = VirtualMachine()
-
-    vm.load(lines)
-    vm.exec()
-
-    pprint(vm.registers)
+    main(lines)
