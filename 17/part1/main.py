@@ -24,6 +24,14 @@ class Board:
             '~': 4  # Standing water
         }
 
+        self.reverse_key = {
+            0: '.', # Sand
+            1: '#', # Clay
+            2: '+', # Source
+            3: '|', # Falling water
+            4: '~'  # Standing water
+        }
+
         # x=474, y=1887..1892        
         inp = re.compile(r'(x|y)=(\d+),\s(y|x)=(\d+)\.\.(\d+)')
         for line in lines:
@@ -64,8 +72,16 @@ class Board:
             return False, x, y
         if self.board[x,y+1] == 0:
             self.board[x,y+1] = 3
-            if self.flow(x,y+1) and self.board[x,y+1] != 3:
-                return self.flow(x,y)
+            try:
+                res = self.flow(x,y+1)
+                if self.board[x,y+1] != 3:
+                    return self.flow(x,y)
+            except Exception as e:
+                print(e)
+                return False, x, y
+        elif self.board[x,y+1] == 3:
+            # Running water?
+            return False, x, y
         else:
             left_bound, lx, ly = self.flow_left(x-1,y)
             right_bound, rx, ry = self.flow_right(x+1,y)
@@ -76,12 +92,15 @@ class Board:
                 return False, x, y
 
     def flow_left(self, x, y):
-        if self.board[x,y+1] == 0:
-            return False, x-1, y #self.flow(x,y+1)
-        if x == 0:
-            return False, x, y
         if self.board[x,y] == 0:
             self.board[x,y] = 3
+        if self.board[x,y+1] == 0:
+            self.flow(x,y)
+            return False, x-1, y
+        if x == 0:
+            return False, x, y
+        if self.board[x,y] == 3 and self.board[x,y+1] != 3:
+            # self.board[x,y] = 3
             return self.flow_left(x-1,y)
         elif self.board[x,y] == 1:
             return True, x+1, y
@@ -92,10 +111,11 @@ class Board:
         if self.board[x,y] == 0:
             self.board[x,y] = 3
         if self.board[x,y+1] == 0:
-            return False, x+1, y#self.flow(x,y+1)
+            self.flow(x,y)
+            return False, x+1, y
         if x == self.shape[0]-1:
             return False, x, y
-        if self.board[x,y] == 0:
+        if self.board[x,y] == 3 and self.board[x,y+1] != 3:
             # self.board[x,y] = 3
             return self.flow_right(x+1,y)
         elif self.board[x,y] == 1:
@@ -107,8 +127,31 @@ class Board:
 
 def main(lines):
     board = Board((1000,2000), lines)
-    board.flow(board.start[0],board.start[1])
-    board.plot(494,508,0,14)
+    try:
+        board.flow(board.start[0],board.start[1])
+    except Exception as e:
+        print(e)
+        
+    maxy = np.max(np.where(board.board == 1)[1])
+    minx = np.min(np.where(board.board == 1)[0])
+    maxx = np.max(np.where(board.board == 1)[0])
+    reduced_map = board.board[minx-2:maxx+3,:maxy+1]
+    # for x in range(board.board.shape[0]-1):
+    #     for y in range(board.board.shape[1]-1):
+    #         if np.sum(board.board[x:x+2,y:y+2] == np.array([[3,3],[3,3]], dtype=int)) == 4:
+    #             print('Error?:',x,y)
+    print(np.sum(reduced_map >= 3))
+    board.plot(y2=maxy+1)
+
+    with open('res4-2.txt','w') as f:
+        for y in range(maxy+1):
+            f.write('\n')
+            for x in range(minx-2, maxx+3):
+                f.write(board.reverse_key[board.board[x,y]])
+
+    # plt.figure(2)
+    # plt.imshow(reduced_map >= 3)
+    # plt.show()
 
 if __name__ == '__main__':
     # Parse args, parse number list
@@ -120,5 +163,7 @@ if __name__ == '__main__':
             lines = f.readlines()
     else:
         sys.exit('Too many args.')
+
+    sys.setrecursionlimit(20000)
 
     main(lines)
